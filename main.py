@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import os
+import json
 
 app = Flask(__name__)
 
@@ -9,9 +11,13 @@ scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
 ]
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "aigro-464708-d87781b62d5e.json", scope
-)
+
+json_key = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON')
+if not json_key:
+    raise ValueError("Missing environment variable: GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+info = json.loads(json_key)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(info, scope)
 client = gspread.authorize(creds)
 sheet = client.open("AiGRO Core Infrastructure").sheet1
 
@@ -31,3 +37,4 @@ def add_row():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000)
+
